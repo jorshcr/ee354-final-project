@@ -7,7 +7,12 @@ module SystolicController_tb;
     wire array_rst, array_en, feed_valid, capture_en, out_valid;
     wire [13:0] buffer_addr;
     integer reads, feeds, drains, captures, ticks;
-    SystolicController dut (.*);
+    logic post_bank_available=0, tile_bank=0, post_out_last=0, post_out_bank=0;
+    logic [7:0] post_out_valid=0;
+    wire [7:0] post_in_valid;
+    wire [2:0] post_in_row [0:7];
+    wire post_in_bank, post_in_last;
+    SystolicController #(.ENABLE_POST(0)) dut (.*);
     always #5 clk = ~clk;
 
     task automatic run_tile(input integer k, r, c);
