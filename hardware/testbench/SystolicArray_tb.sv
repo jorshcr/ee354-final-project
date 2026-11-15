@@ -91,18 +91,19 @@ module SystolicArray_tb #(
         end
       end
 
-      // Delay row r's A stream by r cycles and column c's B stream by c.
-      // Out-of-range slots and unused lanes receive zero, including drain cycles.
+      // Send the same k index on every lane; the array adds boundary delays.
+      // After K input cycles, feed zeros for M+N-2 drain cycles.
+      // Unused lanes always receive zero.
       for (int cycle = 0; cycle < RUN_CYCLES; cycle++) begin
         @(negedge clk);
         rst = 0; en = 1;
         for (int lane = 0; lane < 8; lane++) begin
           a_inputs[lane] = 0;
           b_inputs[lane] = 0;
-          if (lane < M && cycle >= lane && cycle - lane < K)
-            a_inputs[lane] = matrix_a[lane][cycle - lane];
-          if (lane < N && cycle >= lane && cycle - lane < K)
-            b_inputs[lane] = matrix_b[cycle - lane][lane];
+          if (lane < M && cycle < K)
+            a_inputs[lane] = matrix_a[lane][cycle];
+          if (lane < N && cycle < K)
+            b_inputs[lane] = matrix_b[cycle][lane];
         end
       end
 

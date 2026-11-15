@@ -22,10 +22,40 @@ wire signed [7:0] bLink [0:8][0:7]; // connecting down columns
 
 genvar i, row, col;
 generate 
-    // input connections
-    for (i = 0; i < 8; i = i + 1) begin
-        assign aLink[i][0] = inputA[i];
-        assign bLink[0][i] = inputB[i];
+    // Boundary skew only: A row i and B column i each have i delays.
+    // Present the same k index on all input lanes; no external skew needed.
+    for (i = 0; i < 8; i = i + 1) begin : input_delays
+        if (i == 0) begin : direct_input
+            assign aLink[i][0] = inputA[i];
+            assign bLink[0][i] = inputB[i];
+        end else begin : delayed_input
+            logic signed [7:0] aDelay [0:i-1];
+            logic signed [7:0] bDelay [0:i-1];
+
+            always_ff @(posedge clk or posedge rst) begin
+                if (rst) begin
+                    for (int stage = 0; stage < i; stage++) begin
+                        aDelay[stage] <= 0;
+                        bDelay[stage] <= 0;
+                    end
+                end
+                else if (clear) begin
+                    // hold vals and clear acc
+                end
+                else if (en) begin
+                    // Match the MAC forwarding enable, including clear stalls.
+                    aDelay[0] <= inputA[i];
+                    bDelay[0] <= inputB[i];
+                    for (int stage = 1; stage < i; stage++) begin
+                        aDelay[stage] <= aDelay[stage-1];
+                        bDelay[stage] <= bDelay[stage-1];
+                    end
+                end
+            end
+
+            assign aLink[i][0] = aDelay[i-1];
+            assign bLink[0][i] = bDelay[i-1];
+        end
     end
 
     // MACs creation
