@@ -6,38 +6,34 @@ One reusable accelerator processes the network layer by layer.
 ## Top-level architecture
 
 ```text
-                      PC
-           Image preparation / model loading
-           Final box decoding / NMS
-                       |
-                       v
-+-------------------- FPGA ----------------------+
-|                                                |
-|  Layer controller                              |
-|  Dimensions, addresses, scales, start/done      |
-|          |                                     |
-|          v                                     |
-|  +--------- Reusable accelerator ------------+  |
-|  | Input buffer         Weight buffer       |  |
-|  |       +--------+----------+              |  |
-|  |                v                         |  |
-|  |       Convolution MAC engine             |  |
-|  |                v                         |  |
-|  |      Bias / activation / rescaling       |  |
-|  |                v                         |  |
-|  |        Optional max pooling              |  |
-|  |                v                         |  |
-|  |          Output buffer                   |  |
-|  +------------------------------------------+  |
-|                ^                               |
-|                |                               |
-|                v                               |
-|  Memory transfer logic + DDR2 controller        |
-+----------------^-------------------------------+
-                 |
-                 v
-          External DDR2 memory
-         Weights + feature maps
+                     PC
+          Image preparation / model loading
+          Final box decoding / NMS
+                      │
+                      ▼
+┌──────────────────── FPGA ────────────────────┐
+│                                             │
+│  Layer controller                           │
+│  Dimensions, addresses, scales, start/done   │
+│          │                                  │
+│          ▼                                  │
+│  ┌──────── Reusable accelerator ──────────┐  │
+│  │ Input buffer      Weight buffer       │  │
+│  │       └──────┬──────────┘              │  │
+│  │              ▼                        │  │
+│  │      Convolution MAC engine           │  │
+│  │              ▼                        │  │
+│  │     Bias / activation / rescaling     │  │
+│  │              ▼                        │  │
+│  │       Optional max pooling            │  │
+│  │              ▼                        │  │
+│  │         Output buffer                 │  │
+│  └───────────────────────────────────────┘  │
+│               ⇅                             │
+│      Memory transfer logic + DDR2 controller│
+└───────────────⇅─────────────────────────────┘
+         External DDR2 memory
+       Weights + feature maps
 ```
 
 For each layer, the controller loads input and weight tiles into BRAM,
