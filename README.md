@@ -1,4 +1,4 @@
-# Tiny YOLOv2 FPGA Accelerator
+# Running Tiny YOLOv2 on FPGA
 
 Target: Nexys A7-100T, with INT8 weights and activations and INT32 accumulation.
 One reusable accelerator processes the network layer by layer.
